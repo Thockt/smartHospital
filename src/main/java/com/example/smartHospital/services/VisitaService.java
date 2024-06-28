@@ -3,6 +3,7 @@ package com.example.smartHospital.services;
 import com.example.smartHospital.entities.Visita;
 import com.example.smartHospital.exceptions.UtenteNotFoundException;
 import com.example.smartHospital.exceptions.VisitaNotFoundException;
+import com.example.smartHospital.repositories.UtenteRepository;
 import com.example.smartHospital.repositories.VisitaRepository;
 import com.example.smartHospital.requests.VisitaRequest;
 import com.example.smartHospital.responses.VisitaResponse;
@@ -19,7 +20,7 @@ public class VisitaService {
     @Autowired
     private VisitaRepository visitaRepository;
     @Autowired
-    private UtenteService utenteService;
+    private UtenteRepository utenteRepository;
 
     public Visita getVisitaById (Long id) throws VisitaNotFoundException {
         Optional<Visita> visitaOptional = visitaRepository.findById(id);
@@ -62,12 +63,36 @@ public class VisitaService {
         visitaRepository.deleteById(id);
     }
 
+    public void  salvaVisita (Visita visita) {
+        visitaRepository.saveAndFlush(visita);
+    }
+
+    public String getPath (Long idVisita) {
+        return visitaRepository.getFilePath(idVisita);
+    }
+
+    public String getPathByPaziente (Long idPaziente) {
+        return visitaRepository.getFilePathConIdPaziente(idPaziente);
+    }
+
+    public List<Long> getAllVisiteConReferto () {
+        return visitaRepository.getAllVisiteConReferto();
+    }
+
+    public List<Visita> getAllVisitePrenotate (Long idPaziente) {
+        return visitaRepository.getAllVisitePrenotate(idPaziente);
+    }
+
+    public List<Visita> getAllVisitePassate (Long idPaziente) {
+        return visitaRepository.getAllVisitePassate(idPaziente);
+    }
+
    private Visita convertFromDTO (VisitaRequest request) throws UtenteNotFoundException {
         return Visita.builder()
                 .prezzo(request.getPrezzo())
                 .orarioVisita(request.getOrarioVisita())
-                .paziente(utenteService.getUtenteById(request.getPaziente()))
-                .medico(utenteService.getUtenteById(request.getMedico()))
+                .paziente(utenteRepository.getReferenceById(request.getPaziente()))
+                .medico(utenteRepository.getReferenceById(request.getMedico()))
                 .build();
    }
 
