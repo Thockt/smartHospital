@@ -1,8 +1,10 @@
 package com.example.smartHospital.services;
 
 import com.example.smartHospital.entities.FasciaOraria;
+import com.example.smartHospital.entities.Utente;
 import com.example.smartHospital.exceptions.FasciaOrariaNotFoundException;
 import com.example.smartHospital.repositories.FasciaOrariaRepository;
+import com.example.smartHospital.repositories.UtenteRepository;
 import com.example.smartHospital.requests.FasciaOrariaRequest;
 import com.example.smartHospital.requests.VisitaRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ public class FasciaOrariaService {
 
     @Autowired
     private FasciaOrariaRepository fasciaOrariaRepository;
+    @Autowired
+    private UtenteRepository utenteRepository;
 
     public FasciaOraria getFasciaOrariaById (Long id) throws FasciaOrariaNotFoundException {
         Optional<FasciaOraria> fasciaOrariaOptional = fasciaOrariaRepository.findById(id);
@@ -52,9 +56,12 @@ public class FasciaOrariaService {
         fasciaOrariaRepository.deleteById(id);
     }
 
-    /*public boolean isOrarioValido (VisitaRequest request) {
-
-    }*/
+    public boolean isOrarioValido (VisitaRequest request) throws FasciaOrariaNotFoundException {
+        Utente medico = utenteRepository.getReferenceById(request.getMedico());
+        FasciaOraria fasciaOraria = fasciaOrariaRepository.findByGiorno(request.getDay());
+        if (fasciaOraria==null) throw new FasciaOrariaNotFoundException();
+        return request.getOrarioVisita().toLocalTime().isAfter(fasciaOraria.getInizioServizio()) && request.getOrarioVisita().toLocalTime().isBefore(fasciaOraria.getFineServizio());
+    }
 
     private FasciaOraria convertFromDTO (FasciaOrariaRequest request) {
         return FasciaOraria.builder()

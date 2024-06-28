@@ -68,10 +68,6 @@ public class SpecializzazioneService {
         specializzazioneRepository.saveAndFlush(specializzazione);
     }
 
-   /* public boolean controllaOrario (VisitaRequest request) {
-        Utente medico 
-    } */
-
     private Specializzazione convertFromDTO (SpecializzazioneRequest request) {
         return Specializzazione.builder()
                 .titolo(request.getTitolo())

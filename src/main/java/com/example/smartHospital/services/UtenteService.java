@@ -1,11 +1,9 @@
 package com.example.smartHospital.services;
 
 import com.example.smartHospital.entities.Utente;
+import com.example.smartHospital.entities.Visita;
 import com.example.smartHospital.enums.Role;
-import com.example.smartHospital.exceptions.SpecializzazioneNotFoundException;
-import com.example.smartHospital.exceptions.SpecializzazioneSbagliataException;
-import com.example.smartHospital.exceptions.UtenteNonMedicoException;
-import com.example.smartHospital.exceptions.UtenteNotFoundException;
+import com.example.smartHospital.exceptions.*;
 import com.example.smartHospital.repositories.UtenteRepository;
 import com.example.smartHospital.requests.FasciaOrariaRequest;
 import com.example.smartHospital.requests.VisitaRequest;
@@ -25,6 +23,10 @@ public class UtenteService {
     private UtenteRepository utenteRepository;
     @Autowired
     private SpecializzazioneService specializzazioneService;
+    @Autowired
+    private FasciaOrariaService fasciaOrariaService;
+    @Autowired
+    private VisitaService visitaService;
 
     public Utente getUtenteById (Long id) throws UtenteNotFoundException {
         Optional<Utente> utenteOptional = utenteRepository.findById(id);
@@ -59,7 +61,7 @@ public class UtenteService {
                 .telefono(newUtente.getTelefono())
                 .email(newUtente.getEmail())
                 .password(newUtente.getPassword())
-                //.registrationToken(newUtente.getRegistrationToken)
+                .registrationToken(newUtente.getRegistrationToken())
                 .role(newUtente.getRole())
                 .specializzazione(newUtente.getSpecializzazione())
                 .insertTime(newUtente.getInsertTime())
@@ -80,12 +82,47 @@ public class UtenteService {
         specializzazioneService.addFasciaOraria(idSpecializzazione, request);
     }
 
-   /* public VisitaResponse prenotaVisita (VisitaRequest request) throws UtenteNotFoundException, UtenteNonMedicoException {
+    public VisitaResponse prenotaVisita (VisitaRequest request) throws UtenteNotFoundException, UtenteNonMedicoException, FasciaOrariaNotFoundException, OrarioNonValidoException {
         Utente medico = getUtenteById(request.getMedico());
         if(!medico.getRole().equals(Role.MEDICO)) throw new UtenteNonMedicoException();
         getUtenteById(request.getPaziente());
+        if(!fasciaOrariaService.isOrarioValido(request)) throw new OrarioNonValidoException();
+        return visitaService.create(request);
+    }
 
-    }*/
+    public List<Utente> getMediciBySpecializzazione (Long idSpecializzazione) {
+        List<Utente> utenti = utenteRepository.findMediciBySpecializzazioneId(idSpecializzazione);
+        return utenti;
+    }
+
+    public void terminaVisita (Long idVisita, Long idMedico, String path) throws UtenteNotFoundException, UtenteNonMedicoException, VisitaNotFoundException, MedicoSbagliatoException {
+        Utente medico = getUtenteById(idMedico);
+        if(medico.getRole()!=Role.MEDICO) throw new UtenteNonMedicoException();
+        Visita visita = visitaService.getVisitaById(idVisita);
+        if(!visita.getMedico().equals(medico)) throw new MedicoSbagliatoException();
+        visita.setReferto(path);
+        visitaService.salvaVisita(visita);
+    }
+
+    public String getRefertoFilePath (Long idVisita) {
+        return visitaService.getPath(idVisita);
+    }
+
+    public String getRefertoFilePathByPaziente (Long idPaziente) {
+        return visitaService.getPathByPaziente(idPaziente);
+    }
+
+    public List<Long> getVisiteConReferto () {
+        return visitaService.getAllVisiteConReferto();
+    }
+
+    public List<Visita> getVisitePrenotate (Long idPaziente) {
+        return visitaService.getAllVisitePrenotate(idPaziente);
+    }
+
+    public List<Visita> getVisitePassate (Long idPaziente) {
+        return visitaService.getAllVisitePassate(idPaziente);
+    }
 
     private UtenteResponse convertFromEntity (Utente utente) {
         return UtenteResponse.builder()

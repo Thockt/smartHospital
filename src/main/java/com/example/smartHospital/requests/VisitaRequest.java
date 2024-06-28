@@ -19,5 +19,6 @@ public class VisitaRequest {
     private LocalDateTime orarioVisita;
     private Long paziente;
     private Long medico;
+    private Giorno day;
 
 }

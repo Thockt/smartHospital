@@ -40,6 +40,7 @@ public class Utente implements UserDetails {
     @Column(nullable = false)
     private String registrationToken;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Role role;
     @ManyToOne
     private Specializzazione specializzazione;
