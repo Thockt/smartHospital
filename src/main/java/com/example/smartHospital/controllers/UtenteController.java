@@ -81,7 +81,7 @@ public class UtenteController {
         return new ResponseEntity<>(new GenericResponse("Referto caricato con successo"), HttpStatus.OK);
     }
 
-    @Secured({"ADMIN", "MEDICO"})
+    @Secured({"ADMIN, MEDICO"})
     @GetMapping("/getReferti")
     public ResponseEntity<?> getVisiteConReferto () {
         return new ResponseEntity<>(utenteService.getVisiteConReferto(), HttpStatus.OK);
